@@ -38,7 +38,8 @@ public class Main {
                 try {
                     if (d.equals("2")) Huffman.EnterDictionary(in,System.out);
                     else if (!d.equals("1")) continue;
-                    System.out.println("Decoded Text : " + Huffman.Decode(text));
+                    String decoded = Huffman.Decode(text);
+                    System.out.println("Decoded Text : " + decoded);
                 } catch (Exception ex) {
                     System.out.println(ex.getMessage());
                     ex.printStackTrace();
