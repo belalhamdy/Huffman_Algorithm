@@ -105,15 +105,15 @@ public class Huffman {
             Node left,right;
             while (queue.size()>2)
             {
-                left = queue.poll();
                 right = queue.poll();
+                left = queue.poll();
                 Node temp = new Node(left.symbol+right.symbol,left.prob + right.prob);
                 temp.left = left;
                 temp.right = right;
                 queue.add(temp);
             }
-            left = queue.poll();
             right = queue.poll();
+            left = queue.poll();
             root.left = left;
             root.right = right;
         }
@@ -148,7 +148,7 @@ public class Huffman {
     static int getChar(String code) throws Exception {
         List<Integer> indexes = new ArrayList<>();
         for (int i = 0; i < codes.length; ++i) {
-            if (codes[i]!= null && codes[i].contains(code)) indexes.add(i);
+            if (codes[i]!= null && codes[i].startsWith(code)) indexes.add(i);
         }
         if (indexes.size() == 1) return indexes.get(0);
         if (indexes.size() == 0) throw new Exception("Invalid input.. this code is not exists");
