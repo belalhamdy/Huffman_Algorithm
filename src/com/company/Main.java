@@ -7,6 +7,7 @@ public class Main {
     private static Scanner in = new Scanner(System.in);
     public static void main(String[] args) {
         System.out.println("Welcome to Normal Huffman Encoder/Decoder");
+        System.out.println(TestCaseBuilder.buildCase(in,System.out));
         while (true) {
             System.out.println("\n1- Encode\n2- Decode\nAny other character will halt");
             String c = in.nextLine();
