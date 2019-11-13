@@ -3,12 +3,10 @@ package com.company;
 import com.sun.istack.internal.NotNull;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Huffman {
-    private static class Node implements Comparable<Node> {
+    private static class Node{
         String code; // Code of encoding value of that symbol
         Node parent, left, right;
         String symbol;
@@ -26,13 +24,10 @@ public class Huffman {
 
         @Override
         public String toString() {
-            return this.symbol + " : " + this.code + " " + this.prob;
+            if (this.symbol.equals("")) return "root";
+            return this.symbol+ " : " + this.code + " " + this.prob;
         }
 
-        @Override
-        public int compareTo(Node other) {
-            return Double.compare(this.prob, other.prob);
-        }
     }
 
     final static int MAX_CHARACTERS = 256;
@@ -40,40 +35,127 @@ public class Huffman {
     static Node root;
 
     static void init() {
-        root = null;
+        root = new Node("",1);
         codes = new String[MAX_CHARACTERS];
     }
-    public static String Encode(String data){
-        String ret = "";
-        return ret;
+    static void printQueue(PriorityQueue<Node> queue)
+    {
+        PriorityQueue<Node> pq = new PriorityQueue<>(queue);
+        while (pq.size() > 0) {
+            System.out.println(pq.poll());
+        }
     }
-    public static String Decode (String data){
-        String ret = "";
-        return ret;
+    public static String Encode(String data) throws Exception {
+        init();
+        build(data);
+        StringBuilder ret = new StringBuilder();
+        for (int i = 0 ; i<data.length(); ++i)
+        {
+            ret.append(getCode(data.charAt(i)));
+        }
+        return ret.toString();
     }
-    String getCode(char s) throws Exception {
+    public static String Decode (String data) throws Exception {
+        StringBuilder ret = new StringBuilder();
+        String curr = "";
+        int idx;
+        for (int i = 0 ; i<data.length(); ++i)
+        {
+            curr+= data.charAt(i);
+            idx = getChar(curr);
+            if (idx != -1)
+            {
+                ret.append((char) (idx+1));
+                curr = "";
+            }
+        }
+        if (!curr.equals(""))
+        {
+            throw new Exception("Invalid input.. there is a missing code");
+        }
+        return ret.toString();
+    }
+    static void build(String data) throws Exception {
+        int[] freq = new int[MAX_CHARACTERS];
+        int length = data.length();
+        Arrays.fill(freq,0);
+        for (int i = 0 ; i<length ; ++i)
+        {
+            int c = data.charAt(i) -1;
+            if (c >= MAX_CHARACTERS) throw new Exception("Invalid input.. cannot handle this character");
+            ++freq[c];
+        }
+        PriorityQueue<Node> queue = new PriorityQueue<>(new Comparator<Node>() {
+            @Override
+            public int compare(Node o1, Node o2) {
+                return Double.compare(o1.prob,o2.prob);
+            }
+        });
+        for (int i = 0 ; i<freq.length ; ++i)
+        {
+            if (freq[i]>0)
+            {
+                Node temp = new Node((char)(i+1) + "" , freq[i]*1.0/length); // change here to negative if you want to reverse the priority queue
+                queue.add(temp);
+            }
+        }
+        //printQueue(queue);
+        if (queue.size() == 1) root.left = queue.poll();
+        else{
+            Node left,right;
+            while (queue.size()>2)
+            {
+                left = queue.poll();
+                right = queue.poll();
+                Node temp = new Node(left.symbol+right.symbol,left.prob + right.prob);
+                temp.left = left;
+                temp.right = right;
+                queue.add(temp);
+            }
+            left = queue.poll();
+            right = queue.poll();
+            root.left = left;
+            root.right = right;
+        }
+        setCodes(root,"");
+
+    }
+    static void setCodes(Node curr,String code) throws Exception {
+        if (curr.symbol.length() == 1) codes[curr.symbol.charAt(0)-1] = code;
+        if (curr.right != null)
+        {
+            curr.right.setCode(code+"1");
+            setCodes(curr.right,code+"1");
+        }
+        if (curr.left  != null)
+        {
+            curr.left.setCode(code+"0");
+            setCodes(curr.left,code+"0");
+        }
+    }
+    static String getCode(char s) throws Exception {
         int n = s - 1;
         if (n >= MAX_CHARACTERS) throw new Exception("Invalid input.. cannot handle this character");
         return codes[n];
     }
 
-    boolean setCode(char symbol, String code) throws Exception {
+    static boolean setCode(char symbol, String code) throws Exception {
         if (getCode(symbol).length()>0) return false;
         codes[symbol-1] = code;
         return true;
     }
 
-    int getChar(String code) throws Exception {
+    static int getChar(String code) throws Exception {
         List<Integer> indexes = new ArrayList<>();
         for (int i = 0; i < codes.length; ++i) {
-            if (codes[i].contains(code)) indexes.add(i);
+            if (codes[i]!= null && codes[i].contains(code)) indexes.add(i);
         }
         if (indexes.size() == 1) return indexes.get(0);
         if (indexes.size() == 0) throw new Exception("Invalid input.. this code is not exists");
         else return -1; // Multiple codes are found
     }
 
-    public void enterDictionary(Scanner in, PrintStream out) throws Exception {
+    public static void EnterDictionary(Scanner in, PrintStream out) throws Exception {
         init();
         String code;
         char symbol;

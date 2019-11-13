@@ -17,15 +17,21 @@ public class Main {
                     System.out.println("Encoded Text : " + Huffman.Encode(text));
                 } catch (Exception ex) {
                     System.out.println(ex.getMessage());
+                    ex.printStackTrace();
                     continue;
                 }
             } else if (c.equals("2")) {
                 System.out.println("Enter the encoded bits to decode");
                 String text = in.nextLine();
+                System.out.println("1- Use previous dictionary\n2- Enter your dictionary");
+                String d = in.nextLine();
                 try {
+                    if (d.equals("2")) Huffman.EnterDictionary(in,System.out);
+                    else if (!d.equals("1")) continue;
                     System.out.println("Decoded Text : " + Huffman.Decode(text));
                 } catch (Exception ex) {
                     System.out.println(ex.getMessage());
+                    ex.printStackTrace();
                     continue;
                 }
             } else break;
