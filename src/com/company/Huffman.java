@@ -215,7 +215,7 @@ public class Huffman {
             next.clear();
         }
 
-        int perpiece = lines.get(lines.size() - 1).size() * (widest + 4);
+        int perpiece = lines.get(lines.size() - 1).size() * (widest);
         for (int i = 0; i < lines.size(); i++) {
             List<String> line = lines.get(i);
             int hpw = (int) Math.floor(perpiece / 2f) - 1;
