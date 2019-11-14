@@ -19,13 +19,12 @@ public class Main {
                 try {
                     String encoded = Huffman.Encode(text);
                     System.out.println("Encoded Text : " + encoded);
-                    BufferedWriter writer = new BufferedWriter(new FileWriter("out.txt"));
-                    writer.write(text + "\n" + encoded);
-                    writer.close();
+//                    BufferedWriter writer = new BufferedWriter(new FileWriter("out.txt"));
+//                    writer.write(text + "\n" + encoded);
+//                    writer.close();
 
                 } catch (Exception ex) {
                     System.out.println(ex.getMessage());
-                    ex.printStackTrace();
                     continue;
                 }
             } else if (c.equals("2")) {
@@ -36,13 +35,12 @@ public class Main {
 //                String text ="0010010010010010010010010010010010010010010010000000000000000000000000000000000000000000000000000000001010101010101010101010101010101010101010101010101010101010100010001" ;
 //                String d = "1";
                 try {
-                    if (d.equals("2")) Huffman.EnterDictionary(in,System.out);
+                    if (d.equals("2")) Huffman.EnterDictionary(System.in,System.out);
                     else if (!d.equals("1")) continue;
                     String decoded = Huffman.Decode(text);
                     System.out.println("Decoded Text : " + decoded);
                 } catch (Exception ex) {
                     System.out.println(ex.getMessage());
-                    ex.printStackTrace();
                     continue;
                 }
             } else break;
