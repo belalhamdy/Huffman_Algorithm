@@ -52,7 +52,9 @@ public class Huffman {
         }
         System.out.println("--------------------------------");
     }
-
+    public static String Encode(String originalData) throws Exception {
+        return Encode(originalData,2e-7);
+    }
     public static String Encode(String originalData,double minFrequency) throws Exception {
         init();
         String data = prepare(originalData,minFrequency);
@@ -115,12 +117,9 @@ public class Huffman {
     static void build(String data) throws Exception {
 
 //        PriorityQueue<Node> queue = new PriorityQueue<>(Comparator.comparingInt(o -> o.prob));
-        PriorityQueue<Node> queue = new PriorityQueue<>(new Comparator<Node>() {
-            @Override
-            public int compare(Node o1, Node o2) {
-                if (o1.prob == o2.prob) return 1; // to give the second higher probability
-                return Integer.compare(o1.prob, o2.prob);
-            }
+        PriorityQueue<Node> queue = new PriorityQueue<>((o1, o2) -> {
+            if (o1.prob == o2.prob) return 1; // to give the second higher probability
+            return Integer.compare(o1.prob, o2.prob);
         });
 //        PriorityQueue<Node> queue = new PriorityQueue<>(Comparator.comparingDouble(o -> o.prob));
         for (int i = 0; i < freq.length; ++i) {
@@ -182,17 +181,27 @@ public class Huffman {
 
     public static void EnterDictionary(InputStream input, PrintStream out) throws Exception {
         Scanner in = new Scanner(input);
-        init();
-        String code;
-        char symbol;
-        out.println("Enter the dictionary data (code) (symbol) enter code = -1 to halt");
+        int freq;
+        String frequency;
+        String symbol;
+        StringBuilder data = new StringBuilder();
+        out.println("Enter the dictionary data (symbol) (frequency) enter symbol = -1 to halt");
         while (true) {
-            code = in.next();
-            if (Integer.parseInt(code) == -1) break;
-            symbol = in.nextLine().charAt(0);
-            if (!setCode(symbol, code))
-                throw new Exception("Invalid input.. you have entered this symbol before");
+            symbol = in.next();
+            int check = 0;
+            try {
+                check = Integer.parseInt(symbol);
+            }catch (Exception ex){
+
+            }
+            if (check == -1) break;
+            frequency = in.next();
+            freq = Integer.parseInt(frequency);
+            if (symbol.length()>1 || freq <= 0)
+                throw new Exception("Invalid input.. you have entered wrong data");
+            data.append(new String(new char[freq]).replaceAll("\0",symbol));
         }
+        Encode(data.toString());
     }
 
     static void PrintTree(@NotNull PrintStream out) {
