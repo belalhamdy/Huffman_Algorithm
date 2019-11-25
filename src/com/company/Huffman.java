@@ -11,9 +11,9 @@ public class Huffman {
         String code; // Code of encoding value of that symbol
         Node parent, left, right;
         String symbol;
-        double prob;
+        int prob;
 
-        Node(String symbol, double prob) {
+        Node(String symbol, int prob) {
             this.symbol = symbol;
             this.prob = prob;
             left = right = parent = null;
@@ -26,33 +26,44 @@ public class Huffman {
         @Override
         public String toString() {
             if (this.symbol.equals("")) return "root";
-            return this.symbol + " : " + this.code + " " + String.format("%.2f",this.prob);
+            //return this.symbol + " : " + this.code + " " + String.format("%.2f",this.prob);
+            return this.symbol.replace(othersCode+"","(OTHERS)") + " : " + this.code + " " + this.prob;
         }
 
     }
 
     final static int MAX_CHARACTERS = 256;
-    static String codes[];
-    static Node root;
+    final static char othersCode = '\b';
+    static String codes[] = new String[MAX_CHARACTERS];
+    static int[] freq = new int[MAX_CHARACTERS];
+    static Node root , others;
 
     static void init() {
-        root = new Node("", 1);
-        codes = new String[MAX_CHARACTERS];
+        root = others = null;
+        Arrays.fill(codes,null);
+        Arrays.fill(freq,0);
     }
 
     static void printQueue(PriorityQueue<Node> queue) {
+        System.out.println("--------------------------------");
         PriorityQueue<Node> pq = new PriorityQueue<>(queue);
         while (pq.size() > 0) {
             System.out.println(pq.poll());
         }
+        System.out.println("--------------------------------");
     }
 
-    public static String Encode(String data) throws Exception {
+    public static String Encode(String originalData,double minFrequency) throws Exception {
         init();
+        String data = prepare(originalData,minFrequency);
         build(data);
         StringBuilder ret = new StringBuilder();
+        String code;
         for (int i = 0; i < data.length(); ++i) {
-            ret.append(getCode(data.charAt(i)));
+            code = getCode(data.charAt(i));
+            ret.append(code);
+            if (code.equals(others.code)) ret.append(String.format("%08d",Integer.parseInt(Integer.toBinaryString(originalData.charAt(i)))));
+
         }
         return ret.toString();
     }
@@ -65,7 +76,12 @@ public class Huffman {
             curr += data.charAt(i);
             idx = getChar(curr);
             if (idx != -1) {
-                ret.append((char) (idx + 1));
+                if ((char)idx == othersCode)
+                {
+                    ret.append((char) Integer.parseInt(data.substring(i+1,i+9), 2));
+                    i+=8;
+                }
+               else ret.append((char)idx);
                 curr = "";
             }
         }
@@ -74,26 +90,49 @@ public class Huffman {
         }
         return ret.toString();
     }
-
-    static void build(String data) throws Exception {
-        int[] freq = new int[MAX_CHARACTERS];
-        int length = data.length();
-        Arrays.fill(freq, 0);
-        for (int i = 0; i < length; ++i) {
-            int c = data.charAt(i) - 1;
+    static String prepare(String data,double minFrequency) throws Exception {
+        fillFrequencies(data);
+        int minFreq = (int) Math.ceil(minFrequency*data.length());
+        for (int i = 0 ; i<freq.length ; ++i)
+        {
+            if (freq[i] > 0 && freq[i]<minFreq)
+            {
+                freq[othersCode]+=freq[i];
+                freq[i] = 0;
+                data = data.replaceAll(((char)i)+"",othersCode+"");
+            }
+        }
+        others = new Node(othersCode+"",freq[othersCode]);
+        return data;
+    }
+    static void fillFrequencies(String data) throws Exception {
+        for (int i = 0; i < data.length(); ++i) {
+            int c = data.charAt(i);
             if (c >= MAX_CHARACTERS) throw new Exception("Invalid input.. cannot handle this character");
             ++freq[c];
         }
-        PriorityQueue<Node> queue = new PriorityQueue<>(Comparator.comparingDouble(o -> o.prob));
+    }
+    static void build(String data) throws Exception {
+
+//        PriorityQueue<Node> queue = new PriorityQueue<>(Comparator.comparingInt(o -> o.prob));
+        PriorityQueue<Node> queue = new PriorityQueue<>(new Comparator<Node>() {
+            @Override
+            public int compare(Node o1, Node o2) {
+                if (o1.prob == o2.prob) return 1; // to give the second higher probability
+                return Integer.compare(o1.prob, o2.prob);
+            }
+        });
+//        PriorityQueue<Node> queue = new PriorityQueue<>(Comparator.comparingDouble(o -> o.prob));
         for (int i = 0; i < freq.length; ++i) {
             if (freq[i] > 0) {
-                Node temp = new Node((char) (i + 1) + "", freq[i] * 1.0 / length); // change here to negative if you want to reverse the priority queue
+                Node temp = new Node((char)i + "", freq[i]); // change here to negative if you want to reverse the priority queue
+                if (i == othersCode) others = temp;
                 queue.add(temp);
             }
         }
         //printQueue(queue);
         Node left, right;
-        while (queue.size() > 2) {
+        while (queue.size() > 1) {
             right = queue.poll();
             left = queue.poll();
             Node temp = new Node(left.symbol + right.symbol, left.prob + right.prob);
@@ -101,16 +140,14 @@ public class Huffman {
             temp.right = right;
             queue.add(temp);
         }
-        right = queue.poll();
-        left = queue.poll();
-        root.right = right;
-        root.left = left;
+        root = queue.poll();
+        assert root != null;
         assignCodes(root, "");
 
     }
 
     static void assignCodes(Node curr, String code) throws Exception {
-//        if (curr.symbol.length() == 1) codes[curr.symbol.charAt(0) - 1] = code;
+//        if (curr.symbol.length() == 1) codes[curr.symbol.charAt(0)] = code;
         if (curr.symbol != null  && curr.symbol.length() == 1) setCode(curr.symbol.charAt(0),code);
         if (curr.right != null) {
             curr.right.setCode(code + "1");
@@ -123,14 +160,13 @@ public class Huffman {
     }
 
     static String getCode(char s) throws Exception {
-        int n = s - 1;
-        if (n >= MAX_CHARACTERS) throw new Exception("Invalid input.. cannot handle this character");
-        return codes[n];
+        if (s >= MAX_CHARACTERS) throw new Exception("Invalid input.. cannot handle this character");
+        return (codes[s]!=null?codes[s]:others.code);
     }
 
     static boolean setCode(char symbol, String code) throws Exception {
-        if (getCode(symbol) != null && getCode(symbol).length() > 0) return false;
-        codes[symbol - 1] = code;
+        if (codes[symbol] != null) return false;
+        codes[symbol] = code;
         return true;
     }
 
@@ -162,7 +198,6 @@ public class Huffman {
     static void PrintTree(@NotNull PrintStream out) {
         out.println();
         List<List<String>> lines = new ArrayList<>();
-
         List<Node> level = new ArrayList<>();
         List<Node> next = new ArrayList<>();
 
