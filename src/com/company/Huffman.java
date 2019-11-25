@@ -191,7 +191,7 @@ public class Huffman {
             int check = 0;
             try {
                 check = Integer.parseInt(symbol);
-            }catch (Exception ex){
+            }catch (Exception ignored){
 
             }
             if (check == -1) break;
