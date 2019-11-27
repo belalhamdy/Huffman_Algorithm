@@ -9,14 +9,14 @@ import java.util.*;
 public class Huffman {
     private static class Node {
         String code; // Code of encoding value of that symbol
-        Node parent, left, right;
+        Node  left, right;
         String symbol;
         int prob;
 
         Node(String symbol, int prob) {
             this.symbol = symbol;
             this.prob = prob;
-            left = right = parent = null;
+            left = right  = null;
         }
 
         public void setCode(String code) {
@@ -25,7 +25,7 @@ public class Huffman {
 
         @Override
         public String toString() {
-            if (this.symbol.equals("")) return "root";
+            if (this.code == null || this.code.equals("")) return "root";
             //return this.symbol + " : " + this.code + " " + String.format("%.2f",this.prob);
             return this.symbol.replace(othersCode+"","(OTHERS)") + " : " + this.code + " " + this.prob;
         }
@@ -131,6 +131,12 @@ public class Huffman {
         }
         //printQueue(queue);
         Node left, right;
+        if (queue.size() == 1)
+        {
+            root = queue.poll();
+            setCode(root.symbol.charAt(0),"1");
+            return;
+        }
         while (queue.size() > 1) {
             right = queue.poll();
             left = queue.poll();
@@ -147,7 +153,7 @@ public class Huffman {
 
     static void assignCodes(Node curr, String code) throws Exception {
 //        if (curr.symbol.length() == 1) codes[curr.symbol.charAt(0)] = code;
-        if (curr.symbol != null  && curr.symbol.length() == 1) setCode(curr.symbol.charAt(0),code);
+        if (curr.symbol != null  && curr.symbol.length() == 1) System.out.println(setCode(curr.symbol.charAt(0),code));
         if (curr.right != null) {
             curr.right.setCode(code + "1");
             assignCodes(curr.right, code + "1");
@@ -205,6 +211,7 @@ public class Huffman {
     }
 
     static void PrintTree(@NotNull PrintStream out) {
+        if (root.left == null && root.right == null) return;
         out.println();
         List<List<String>> lines = new ArrayList<>();
         List<Node> level = new ArrayList<>();
